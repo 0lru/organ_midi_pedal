@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "orgel"
+version = "0.1.0"
+description = ""
+authors = ["0lru"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyserial = "^3.5"
+mido = "^1.2.10"
+python-rtmidi = "^1.4.9"
+p3ui = "^1.1.4"
+matplotlib = "^3.6.2"
+jupyter = "^1.0.0"
+pandas = "^1.5.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
