@@ -1,10 +1,9 @@
 # Organ Midi Pedal
-Organ midi pedal build from scratch with hall sensors for a very young men.
+Organ Midi Pedal built from scratch.
 
-For reading the hall sensors, an arduio nano was installed as a microcontroller.
-The driver, a small program written in Python, forwards the data to Grand Orgue
-with the help of loopMidi. The user interface was
-build with ImGui and ImPlot.
+For reading sensors, I've installed an Arduino Nano. A driver program written in Python forwards the data to Grand Orgue
+with the help of LoopMidi. It is intentional that there're only 20 keys. Adaption
+to 30-32 keys for other projects could be possible with a reasonable effort.
 
 ![pedal](doc/pedal.png)
 ![driver](doc/driver.png)
