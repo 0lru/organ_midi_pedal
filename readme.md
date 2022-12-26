@@ -1,23 +1,9 @@
-# Project
-Organ pedal with midi for a very small person.
+# Organ Midi Pedal
+Organ midi pedal build from scratch with hall sensors for a very young men.
+For reading the hall sensors, an arduio nano was installed.
+The driver, which is forwarding the data to Grand Orgue forwards
+the serial data via loopMidi to Grand Orgue. The user interface was
+build with ImGui and ImPlot over Direct3D12.
 
-# Step 1
-
-## Materials
-* beech logs, 6mm
-* spruce logs, 6mm
-* glue wood, 18mm
-* framewood, 5cm
-* rubberbands
-* woodscrews
-* wood glue
-
-## Framing and keys with glue wood
-![framing](doc/000.jpg)
-
-## Dowel bar under construction
-![dowels](doc/001.jpg)
-
-## Elaboration of the first 8 keys
-![keys](doc/002.jpg)
-
+![pedal](doc/pedal.png)
+![driver](doc/driver.png)
