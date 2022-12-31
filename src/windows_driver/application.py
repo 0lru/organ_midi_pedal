@@ -3,83 +3,36 @@ import threading
 import mido
 import serial
 import json
+from pathlib import Path
 import numpy as np
 from p3ui import *
-from pathlib import Path
+
+from key_view import KeyView
 
 device = 'COM10'
 plot_size = 512
 
 
-class KeyView(Column):
+class Configuration:
 
-    def __init__(self, main_view, key_index):
-        self.main_view: 'MainView' = main_view
+    def __init__(self, path):
+        self.doc = {}
+        self.path = Path(path)
+        if self.path.exists():
+            with open(self.path.as_posix(), 'r') as f:
+                self.doc = json.load(f)
 
-        super().__init__(
-            align_items=Alignment.Stretch,
-            children=[
-                key_state_rect := Row(
-                    width=(auto, 0, 0),
-                    height=(2 | em, 0, 0),
-                    background_color='white',
-                    align_items=Alignment.Center,
-                    justify_content=Justification.Center,
-                    children=[Text(f'{key_index:02d}')]
-                ),
-                Row(
-                    padding=(0 | em, 0 | em),
-                    height=(auto, 0, 0),
-                    justify_content=Justification.SpaceAround,
-                    children=[
-                        value_text := Text(f'')
-                    ]
-                ),
-                threshold_slider := SliderU16(
-                    height=(auto, 1, 1),
-                    min=0, max=512,
-                    direction=Direction.Vertical,
-                    on_change=self._on_slider_value_changed
-                )
-            ]
-        )
-        self._key_index = key_index
-        self._key_state = False
-        self._key_state_rect = key_state_rect
-        self._value_text = value_text
-        self._threshold_slider = threshold_slider
+    def _save(self):
+        with open(self.path.as_posix(), 'w') as f:
+            json.dump(self.doc, f, indent=2)
 
     @property
-    def threshold(self):
-        return self._threshold_slider.value
+    def key_mapping(self):
+        return self.doc['key_mapping'] if 'key_mapping' in self.doc else None
 
-    @threshold.setter
-    def threshold(self, value):
-        self._threshold_slider.value = value
-
-    @property
-    def value(self):
-        return int(self._value_text.value)
-
-    @value.setter
-    def value(self, value):
-        self._value_text.value = str(value)
-
-    @property
-    def state(self):
-        return self._key_state
-
-    @state.setter
-    def state(self, value):
-        self._key_state = value
-        self._key_state_rect.background_color = 'green' if value else 'white'
-        # todo: this is a bug, should work without calling redraw
-        self._key_state_rect.redraw()
-
-    def _on_slider_value_changed(self, value):
-        if self.main_view.board is not None:
-            command = f'm{self._key_index} {value}\n'.encode('utf8')
-            self.main_view.board.write(command)
+    @key_mapping.setter
+    def key_mapping(self, key_mapping):
+        self.doc['key_mapping'] = key_mapping
 
 
 class MainView(Row):
@@ -94,19 +47,36 @@ class MainView(Row):
             align_items=Alignment.Stretch,
             children=[
                 Column(
-                    width=(auto, 1, 0),
+                    width=(20 | em, 1, 0),
                     height=(auto, 0, 0),
                     align_items=Alignment.Stretch,
                     justify_content=Justification.Start,
                     children=[
-                        Text(device),
-                        connected_text := Text(''),
-                        version_text := Text(''),
-                        hz_text := Text(''),
+                        Row(
+                            height=(auto, 0, 0),
+                            width=(auto, 1, 0),
+                            justify_content=Justification.Start,
+                            children=[
+                                Text(device),
+                                connected_text := Text(''),
+                                version_text := Text(''),
+                                hz_text := Text('')
+                            ]
+                        ),
                         plot := Plot(x_label='Voltage [V]', y_label='Time [s]', legend_location=Location.East),
+                        Text('Key Mapping:'),
+                        Row(
+                            padding=(0 | em, 0 | em),
+                            height=(auto, 0, 0),
+                            children=[
+                                Button(label='-', on_click=self._decrement_mapping),
+                                Button(label='reset', on_click=self._reset_mapping),
+                                Button(label='+', on_click=self._increment_mapping)
+                            ]
+                        ),
                         debug_checkbox := CheckBox(width=(auto, 0, 0), label='Live Data', on_change=self.on_debug),
                         Button(label='Calibrate', on_click=self.on_calibrate),
-                        Button(label='Save', on_click=self.on_store_calibration),
+                        Button(label='Save Thresholds to EEPROM', on_click=self.on_store_calibration),
                     ]
                 ),
                 Row(
@@ -133,6 +103,18 @@ class MainView(Row):
 
         self.update_gui()
 
+    def _increment_mapping(self):
+        for key in self.keys:
+            key.mapped_key = key.mapped_key + 1
+
+    def _reset_mapping(self):
+        for index, key in enumerate(self.keys):
+            key.mapped_key = index + 36
+
+    def _decrement_mapping(self):
+        for key in self.keys:
+            key.mapped_key = key.mapped_key - 1
+
     def on_calibrate(self):
         if self.board is not None:
             self.board.write(b'c\n')
@@ -157,13 +139,15 @@ class MainView(Row):
         # 36
         if command == 'p':
             key_index = int(parameters)
-            self.keys[key_index].state = True
-            self.mido_port.send(mido.Message('note_on', note=key_index + 36, channel=1))
+            key = self.keys[key_index]
+            key.state = True
+            self.mido_port.send(mido.Message('note_on', note=key.mapped_key, channel=1))
             return
         if command == 'r':
             key_index = int(parameters)
-            self.keys[key_index].state = False
-            self.mido_port.send(mido.Message('note_off', note=key_index + 36, channel=1))
+            key = self.keys[key_index]
+            key.state = False
+            self.mido_port.send(mido.Message('note_off', note=key.mapped_key, channel=1))
             return
         if command == 'v':
             values = [int(p) for p in parameters.split(' ')]

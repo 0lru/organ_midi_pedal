@@ -4,8 +4,9 @@ char const eeprom_version_signature[] = "1.0.0";
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
-// type
+// utils
 using millis_t = unsigned long;
 
 class Counter
@@ -37,6 +38,7 @@ float Counter::hz() const
   return _hz;
 }
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // state
 bool debug = false;
@@ -58,6 +60,7 @@ struct Key
 
 Key pedal[key_count];
 Counter counter;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // eeprom resp. persistency
@@ -105,6 +108,7 @@ void restore_calibration()
   for (int i = 0; i < key_count; ++i, address += sizeof(int))
     EEPROM.get(address, pedal[i].value_min);
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // command interface
@@ -248,6 +252,7 @@ void process_command()
   }
 }
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // read sensor values & update state
 
@@ -298,6 +303,7 @@ inline void update_key_state(millis_t time, int key_index)
 
   send_state(key_index);
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // arduino setup / loop
