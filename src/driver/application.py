@@ -9,7 +9,7 @@ from p3ui import *
 
 from key_view import KeyView
 
-device = 'COM10'
+device = 'COM4'
 plot_size = 512
 
 
@@ -210,7 +210,7 @@ class MainView(Row):
         while True:
             if self.board is None:
                 try:
-                    self.board = serial.Serial(port='COM10', baudrate=500000, timeout=.1)
+                    self.board = serial.Serial(port=device, baudrate=500000, timeout=.1)
                     self.thread = threading.Thread(
                         target=self._input_thread,
                         args=[asyncio.get_event_loop(), self.thread_event]

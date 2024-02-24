@@ -89,7 +89,7 @@ class PedalAdapter:
         while True:
             if self._serial is None:
                 try:
-                    self._serial = serial.Serial(port='COM10', baudrate=500000, timeout=.1)
+                    self._serial = serial.Serial(port='/dev/ttyUSB0', baudrate=500000, timeout=.1)
                     self.connected = True
                     self._thread = threading.Thread(target=self._input_thread, args=[asyncio.get_event_loop()])
                     self._thread.start()

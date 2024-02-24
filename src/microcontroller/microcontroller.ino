@@ -266,16 +266,16 @@ void read_sensor_values()
     digitalWrite(address_pins[1], bitRead(i, 1));
     digitalWrite(address_pins[2], bitRead(i, 2));
     delayMicroseconds(1);
-    pedal[i].value = analogRead(A0);
-    pedal[i + 8].value = analogRead(A1);
+    pedal[(7-i)].value = analogRead(A0);
+    pedal[(7-i) + 8].value = analogRead(A1);
   }
 
   //
   // rest (16-19) is directly connected to analog inputs (A2-A5)
-  pedal[16].value = analogRead(A2);
+  /*pedal[16].value = analogRead(A2);
   pedal[17].value = analogRead(A3);
   pedal[18].value = analogRead(A4);
-  pedal[19].value = analogRead(A5);
+  pedal[19].value = analogRead(A5);*/
 }
 
 inline void update_key_state(millis_t time, int key_index)
